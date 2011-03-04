@@ -10,7 +10,7 @@ module Delayed
       @files_to_reopen = []
       @options = {
         :quiet => true,
-        :pid_dir => "#{Rails.root}/tmp/pids"
+        :pid_dir => "#{root}/tmp/pids"
       }
       
       @worker_count = 1
@@ -85,7 +85,7 @@ module Delayed
     end
     
     def run(worker_name = nil)
-      Dir.chdir(Rails.root)
+      Dir.chdir(root)
       
       # Re-open file handles
       @files_to_reopen.each do |file|
@@ -96,16 +96,24 @@ module Delayed
         end
       end
       
-      Delayed::Worker.logger = Logger.new(File.join(Rails.root, 'log', 'delayed_job.log'))
+      Delayed::Worker.logger = Logger.new(File.join(root, 'log', 'delayed_job.log'))
       Delayed::Worker.backend.after_fork
       
       worker = Delayed::Worker.new(@options)
       worker.name_prefix = "#{worker_name} "
       worker.start
     rescue => e
-      Rails.logger.fatal e
+      Rails.logger.fatal e if defined?(Rails)
       STDERR.puts e.message
       exit 1
+    end
+
+    def root
+      if defined?(Rails)
+        Rails.root
+      else
+        Dir.pwd
+      end
     end
     
   end
