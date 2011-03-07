@@ -112,7 +112,7 @@ module Delayed
       if defined?(Rails)
         Rails.root
       else
-        Dir.pwd
+        ENV['ROOT'] || File.expand_path(Dir.pwd)
       end
     end
     
